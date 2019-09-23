@@ -48,15 +48,23 @@ export class Card extends React.Component {
             flex: 1,
             flexDirection: 'row',
             justifyContent: 'space-between',
+            alignItems: 'center'
           }}
         >
           <HeaderLarge>{this.props.header.title}</HeaderLarge>
-          <TouchableOpacity onPress={() => {this.setState({isActive: !isActive})}}>
+          <TouchableOpacity 
+            onPress={() => {this.setState({isActive: !isActive})}}
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 5
+            }}
+          >
             <FontAwesomeIcon 
               icon={faAngleDown}
               color="#fbc531" 
               size={32} 
-              transform={{ rotate: isActive ? 180 : 0 }} />
+              transform={{ rotate: isActive ? 180 : 0 }} 
+            />
           </TouchableOpacity>
         </View>
         {
@@ -229,7 +237,18 @@ export class NumberWithPopup extends React.Component {
             <View>
               <Text style={{textAlign: 'center'}}>{this.props.name}</Text>
               <Text style={{textAlign: 'center'}}>{this.state.value}</Text>
-              <Slider style={{width: 200, height: 50}} value={this.state.value} step="1" minimumValue="0" maximumValue="100" onValueChange={(value)=>{this.setState({value})}}/>
+              
+              {/* <Slider style={{width: 200, height: 50}} value={this.state.value} step="1" minimumValue="0" maximumValue="100" onValueChange={(value)=>{this.setState({value})}}/> */}
+              <MultiSlider
+                values={[this.state.value]}
+                sliderLength={250}
+                step={1}
+                min={0}
+                max={100}
+                onValuesChangeStart={f=>f}
+                onValuesChange={(value)=>{this.setState({value: value[0]})}}
+                onValuesChangeFinish={f=>f}
+              />
               <TouchableOpacity
                 // style={{ width: 200, height: 50}}
                 onPress={() => {

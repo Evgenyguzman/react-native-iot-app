@@ -1,12 +1,12 @@
 export default class HydraService {
 
 	// singleton
-    static instance = null
-    static getInstance(){
-        if(HydraService.instance === null){
-            HydraService.instance = new HydraService()
-        }
-        return HydraService.instance
+	static instance = null
+	static getInstance(){
+		if(HydraService.instance === null){
+			HydraService.instance = new HydraService()
+		}
+		return HydraService.instance
 	}
 	
 	isConnected(){
@@ -21,27 +21,30 @@ export default class HydraService {
 		this.log('connecting...')
 		this.state = 'connecting'
 		this.socket = new WebSocket(address)
-	    this.socket.addEventListener('message', (event) => {
-	        this.log('received: ' + event.data)
+		this.socket.addEventListener('message', (event) => {
+			this.log('received: ' + event.data)
 			let data = JSON.parse(event.data)
 			// console.log(data)
-	        this.receive(data)
-            if (this.state === 'getToken' && data.type === 'get-user-token-reply') {
-                this.state = 'login-required'
-	        	this.token = data.token
-	        	this.resolve(data.token)
-            }
-            if (this.state === 'login' && data.type === 'login-user-reply') {
-	        	this.state = data.success === true ? 'authorized' : 'login-required'
-	        	this.resolve(data.success)
-            }
-            if (this.state === 'register' && data.type === 'register-user-reply') {
-	        	this.state = 'login-required'
-	        	this.resolve(data.result)
-            }
-	    })
-	    this.socket.addEventListener('open', (event) => {
-	    	this.state = 'login-required'
+			this.receive(data)
+			if (this.state === 'getToken' && data.type === 'get-user-token-reply') {
+				this.state = 'login-required'
+				this.token = data.token
+				this.resolve(data.token)
+			}
+			if (this.state === 'login' && data.type === 'login-user-reply') {
+				this.state = data.success === true ? 'authorized' : 'login-required'
+				this.resolve(data.success)
+			}
+			if (this.state === 'register' && data.type === 'register-user-reply') {
+				this.state = 'login-required'
+				this.resolve(data.result)
+			}
+			if (this.state === 'authorized' && (data.type === 'add-system-reply' || data.type === 'remove-system-reply' || data.type === 'rename-system-reply' ) ) {
+				this.resolve(data.success)
+			}
+		})
+	  this.socket.addEventListener('open', (event) => {
+			this.state = 'login-required'
 			this.resolve(true)
 		})
 		this.socket.addEventListener('error', (event) => {
@@ -51,7 +54,7 @@ export default class HydraService {
 			// }
 			if(this.state !== 'disconnected' && this.state !== 'connecting'){
 				this.onDisconnect()
-	    		this.state = 'disconnected'
+				this.state = 'disconnected'
 			}
 		})
 		this.socket.addEventListener('close', (event) => {
@@ -61,17 +64,17 @@ export default class HydraService {
 			// }
 			if(this.state !== 'disconnected' && this.state !== 'connecting'){
 				this.onDisconnect()
-	    		this.state = 'disconnected'
+	    	this.state = 'disconnected'
 			}
 		})
-	    return new Promise((resolve, reject) => { 
+		return new Promise((resolve, reject) => { 
 			this.resolve = resolve
 			this.reject = reject
 		})
-    }
+  }
 
-    async register(userId, password){
-        this.log(this.state)
+  async register(userId, password){
+		this.log(this.state)
 		if (this.state !== 'login-required') return false
 		this.log(`register (${userId}, ${password})...`)
 		this.state = 'register'
@@ -82,10 +85,10 @@ export default class HydraService {
 			this.resolve = resolve
 			this.reject = reject
 		})
-    }
+	}
 
-    async getToken(userId, password){
-        this.log(this.state)
+	async getToken(userId, password){
+		this.log(this.state)
 		if (this.state !== 'login-required') return false
 		this.log(`get token (${userId}, ${password})...`)
 		this.state = 'getToken'
@@ -96,10 +99,10 @@ export default class HydraService {
 			this.resolve = resolve
 			this.reject = reject
 		})
-    }
+	}
 
 	async login(id, token) {
-        this.log(this.state)
+		this.log(this.state)
 		if (this.state !== 'login-required') return false
 		this.log(`login (${token})...`)
 		this.state = 'login'
@@ -116,7 +119,43 @@ export default class HydraService {
 		if (this.state !== 'authorized') return
 		this.state = 'login-required'
 		this.socket.send(JSON.stringify({'type': 'logout-user-request'}))
-    }
+	}
+
+	async addDevice(systemId){
+		this.socket.send(JSON.stringify({
+			'type': 'add-system-request',
+			'system-id': systemId,
+			'system-user-id': 'user',
+			'system-user-password': 'user'
+		}))
+		return new Promise((resolve, reject) => { 
+			this.resolve = resolve
+			this.reject = reject
+		})
+	}
+
+	async deleteDevice(systemId){
+		this.socket.send(JSON.stringify({
+			'type': 'remove-system-request',
+			'system-id': systemId
+		}))
+		return new Promise((resolve, reject) => { 
+			this.resolve = resolve
+			this.reject = reject
+		})
+	}
+
+	async renameDevice(systemId, systemName){
+		this.socket.send(JSON.stringify({
+			'type': 'rename-system-request',
+			'system-id': systemId,
+			'system-name': systemName
+		}))
+		return new Promise((resolve, reject) => { 
+			this.resolve = resolve
+			this.reject = reject
+		})
+	}
 
 	// ____________________ //
 	// //system-statuses

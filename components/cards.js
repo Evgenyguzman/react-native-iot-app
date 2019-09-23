@@ -97,15 +97,21 @@ export class DeviceCard extends React.Component {
 
 
     return (
-      <TouchableOpacity style={{
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        marginHorizontal: 10,
-        marginVertical: 5,
-        backgroundColor: '#804C2F',
-        borderRadius: 5,
-        position: 'relative'
-      }}
+      <TouchableOpacity 
+        style={{
+          paddingHorizontal: 20,
+          paddingVertical: 10,
+          marginHorizontal: 10,
+          marginVertical: 5,
+          backgroundColor: '#804C2F',
+          borderRadius: 5,
+          position: 'relative',
+          elevation:4,
+          shadowOffset: { width: 5, height: 5 },
+          shadowColor: "black",
+          shadowOpacity: 0.5,
+          shadowRadius: 10
+        }}
       onPress={() => {
         // if(system.online){
           this.props.navigate('Device', {id: system.id})

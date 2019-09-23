@@ -1,27 +1,22 @@
-import React from 'react';
+import React from 'react'
 import {
-  Platform,
-  ScrollView,
   Dimensions,
   StyleSheet,
-  Text,
   TextInput,
   Button,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View, 
   Alert,
   // Image,
   ImageBackground
-} from 'react-native';
+} from 'react-native'
 import { Keyboard } from 'react-native'
-import { WebBrowser } from 'expo';
 
 import Image from 'react-native-remote-svg'
 
-import { TabView, TabBar } from 'react-native-tab-view';
+import { TabView, TabBar } from 'react-native-tab-view'
 
-import HydraService from '../services/HydraService';
+import HydraService from '../services/HydraService'
 
 import C from '../store/constants'
 
@@ -31,30 +26,20 @@ export default class LoginScreen extends React.Component {
   };
 
   constructor(props) {
-    super(props);
-
+    super(props)
     this.state = {
       index: 0,
       routes: [
         { key: 'first', title: 'Вход' },
         { key: 'second', title: 'Регистрация' },
-      ],
-      signIn_id: '',
-      signIn_password: '',
-      signUp_id: '',
-      signUp_password: ''
-    };
+      ]
+    }
   }
 
   render() {
-
-    console.log('login')
-
     const { navigate } = this.props.navigation;
-
     return (
       <View style={styles.container}>
-        {/* <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}> */}
         <ImageBackground 
           source={require('../assets/images/bm.jpg')} 
           style={{width: '100%', height: '100%' }}
@@ -64,7 +49,6 @@ export default class LoginScreen extends React.Component {
             style={{flex: 1}}
             navigationState={this.state}
             renderTabBar = {(props) => {
-              // console.log(props)
               return(
                 <TabBar
                   {...props}
@@ -79,9 +63,9 @@ export default class LoginScreen extends React.Component {
             renderScene = {({ route }) => {
               switch (route.key) {
                 case 'first':
-                  return <SignIn _handleSignIn={(id, password)=>{this._handleSignIn(navigate, id, password)}} _handleForgotPassword={()=>{this._handleForgotPassword(navigate)}} />;
+                  return <SignIn _handleSignIn={(id, password)=>{this._handleSignIn(navigate, id, password)}} _handleForgotPassword={()=>{this._handleForgotPassword(navigate)}} />
                 case 'second':
-                  return <SignUp _handleSignUp={(id, password)=>{this._handleSignUp(id, password)}} />;
+                  return <SignUp _handleSignUp={(id, password)=>{return this._handleSignUp(id, password)}} />
                 default:
                   return null;
               }
@@ -96,18 +80,9 @@ export default class LoginScreen extends React.Component {
               style={{ width: 200, height: 150 }}
             />
           </View>
-
         </ImageBackground>
-
-        {/* </ScrollView> */}
-
       </View>
-    );
-  }
-
-  componentWillMount() {
-    // const state = this.props.screenProps.store.getState()
-    // console.log(this.props)
+    )
   }
 
   _handleSignIn =  async (navigate, id='test0', password='test0') => {
@@ -120,7 +95,7 @@ export default class LoginScreen extends React.Component {
         navigate('Devices', { id: id, token: res })
       }else {
         console.log('error get token')
-        Alert.alert('Invalid data.');
+        Alert.alert('Invalid data.')
       }
     }else{
       console.log('no connect')
@@ -128,22 +103,32 @@ export default class LoginScreen extends React.Component {
   }
 
   _handleSignUp = async (id, password) => {
-    const hydra = HydraService.getInstance()
-    if(hydra.isConnected()){
-      const res = await hydra.register(id, password)
-      if(res === 0){
-        console.log('success')
-        Alert.alert('Success.');
-      }else if(res === 1){
-        console.log('user exists')
-        Alert.alert('User exists.');
-      }else {
-        console.log('error')
-        Alert.alert('Invalid data.');
+    // return new Promise((resolve, reject) => {
+      const hydra = HydraService.getInstance()
+      if(hydra.isConnected()){
+        const res = await hydra.register(id, password)
+        if(res === 0){
+          console.log('success')
+          Alert.alert('Success.')
+          this.setState({index: 0})
+          // resolve(true)
+          return true
+        }else if(res === 1){
+          console.log('user exists')
+          Alert.alert('User exists.')
+          // resolve(false)
+          return false
+        }else {
+          console.log('error')
+          Alert.alert('Invalid data.')
+          // resolve(false)
+          return false
+        }
+      }else{
+        console.log('no connect')
+        return false
       }
-    }else{
-      console.log('no connect')
-    }
+    // })
   }
 
   _handleForgotPassword = (navigate) => {
@@ -196,12 +181,6 @@ class SignIn extends React.Component {
         onPress={()=>{ 
           console.log('signIn')
           console.log(this.state)
-          // console.log(this.id)
-          // console.log(this.id._lastNativeText)
-          // console.log(this.textInput.value)
-
-          // console.log(this.refs.password)
-          // console.log(this.refs.id)
           this.props._handleSignIn(this.state.id, this.state.password) 
         }}
         title="Вход"
@@ -224,7 +203,6 @@ class SignIn extends React.Component {
 }
 
 class SignUp extends React.Component {
-  // console.log(props)
   constructor(props){
     super(props)
     this.state = {
@@ -235,41 +213,47 @@ class SignUp extends React.Component {
 
   render(){
     return(
-
-    <View style={[styles.scene, { backgroundColor: 'rgba(0,0,0,.8)', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }]}>
-      <TextInput
-        placeholder = "Email"
-        placeholderTextColor = '#fff'
-        // style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 3}}
-        editable = {true}
-        maxLength = {40}
-        onChangeText={(id) => {this.setState({id})}}
-        value={this.state.id}
-      />
-      <TextInput
-        placeholder = "Пароль"
-        placeholderTextColor = '#fff'
-        style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 5, marginBottom: 20}}
-        editable = {true}
-        maxLength = {40}
-        onChangeText={(password) => {this.setState({password})}}
-        value={this.state.password}
-        secureTextEntry={true}
-      />
-      <Button
-        onPress={()=>{ 
-          console.log('signUp') 
-          this.props._handleSignUp(this.state.id, this.state.password)
-        }}
-        title="Регистрация"
-        color="#fff"
-        accessibilityLabel="Зарегистрировать учетную запись"
-      />
-    </View>
+      <View style={[styles.scene, { backgroundColor: 'rgba(0,0,0,.8)', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }]}>
+        <TextInput
+          placeholder = "Email"
+          placeholderTextColor = '#fff'
+          style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 3}}
+          editable = {true}
+          maxLength = {40}
+          onChangeText={(id) => {this.setState({id})}}
+          value={this.state.id}
+        />
+        <TextInput
+          placeholder = "Пароль"
+          placeholderTextColor = '#fff'
+          style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 5, marginBottom: 20}}
+          editable = {true}
+          maxLength = {40}
+          onChangeText={(password) => {this.setState({password})}}
+          value={this.state.password}
+          secureTextEntry={true}
+        />
+        <Button
+          onPress={()=>{ 
+            console.log('signUp') 
+            const promise = this.props._handleSignUp(this.state.id, this.state.password)
+            promise.then((res)=>{
+              console.log(res)
+              if(res){
+                this.setState({
+                  id: '',
+                  password: ''
+                })
+              }
+            })
+          }}
+          title="Регистрация"
+          color="#fff"
+          accessibilityLabel="Зарегистрировать учетную запись"
+        />
+      </View>
     )
-
   }
-  
 }
 
 const DismissKeyboardHOC = (Comp) => {
@@ -280,7 +264,7 @@ const DismissKeyboardHOC = (Comp) => {
       </Comp>
     </TouchableWithoutFeedback>
   );
-};
+}
 const DismissKeyboardView = DismissKeyboardHOC(View)
 
 
@@ -298,4 +282,4 @@ const styles = StyleSheet.create({
   scene: {
     flex: 1,
   }
-});
+})

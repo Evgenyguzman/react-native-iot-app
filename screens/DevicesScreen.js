@@ -1,7 +1,6 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -50,8 +49,7 @@ export default class DevicesScreen extends React.Component {
     super(props)
     this.state={
       isModalVisible: false,
-      id: undefined,
-      password: undefined
+      id: undefined
     }
 
   }
@@ -62,9 +60,55 @@ export default class DevicesScreen extends React.Component {
     // ProfileScreen.navigationOptions.title = name
   }
 
+  addDevice = async () => {
+    const { id } = this.state
+    console.log(id)
+    const hydra = HydraService.getInstance()
+    if(hydra.isConnected()){
+      // отправляем запрос в облако
+      const res = await hydra.addDevice(id)
+      console.log(res)
+      {/* const res = false */}
+      // реагируем на ответ
+      if(res){
+        Alert.alert('Устройство успешно добавлено')
+        this.setState({isModalVisible: false})
+      }else{
+        Alert.alert('Ошибка добавления')
+      }
+    }
+  }
+
+  deleteDevice = async (id) => {
+    console.log(id)
+    const hydra = HydraService.getInstance()
+    if(hydra.isConnected()){
+      const res = await hydra.deleteDevice(id)
+      console.log(res)
+      if(res){
+        Alert.alert('Устройство успешно удалено')
+      }else{
+        Alert.alert('Ошибка удаления')
+      }
+    }
+  }
+
+  renameDevice = async (id, name) => {
+    console.log(id)
+    const hydra = HydraService.getInstance()
+    if(hydra.isConnected()){
+      const res = await hydra.renameDevice(id, name)
+      console.log(res)
+      if(res){
+      }else{
+        Alert.alert('Ошибка')
+      }
+    }
+  }
+
   render() {
     const store = this.props.store
-    const {devices,things} = store.panel
+    const { devices, things } = store.panel
     // things = {}
     // devices = []
     // console.log(things)
@@ -74,7 +118,7 @@ export default class DevicesScreen extends React.Component {
 
     console.log('devices store')
     
-    // стркуктура
+    // структура
     // systems = [
     //   {
     //     id: '',
@@ -88,14 +132,6 @@ export default class DevicesScreen extends React.Component {
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          {/* <View>
-            <Button
-              title="Выйти"
-              onPress={() => 
-                  this.onQuit()
-              }
-            />
-          </View> */}
           <View style={{
             marginVertical: 10
           }}> 
@@ -115,52 +151,38 @@ export default class DevicesScreen extends React.Component {
               }
             />
             <Modal
-                animationType="slide"
-                transparent={false}
-                visible={this.state.isModalVisible}
-                onRequestClose={() => {
-                    Alert.alert('Modal has been closed.');
-                }}>
-                <View style={{ 
-                    flex: 1, 
-                    flexDirection: 'column', 
-                    justifyContent: 'center',
-                    alignItems: 'center',}}>
-                    <Button
-                      title="Закрыть"
-                      onPress={() => this.setState({isModalVisible: false}) }
-                    />
-                    <TextInput
-                      placeholder = "ID"
-                      placeholderTextColor = '#fff'
-                      style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 5, marginBottom: 20}}
-                      editable = {true}
-                      maxLength = {40}
-                      onChangeText={(id) => {this.setState({id})}}
-                      value={this.state.id}
-                    />
-                    <TextInput
-                      placeholder = "Password"
-                      placeholderTextColor = '#fff'
-                      style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 5, marginBottom: 20}}
-                      editable = {true}
-                      maxLength = {40}
-                      onChangeText={(password) => {this.setState({password})}}
-                      value={this.state.password}
-                    />
-                    <TouchableOpacity 
-                      onPress={() => {
-                        const { id, password } = this.state
-                        console.log(id, password)
-                        // отправляем запрос в облако
-                        // реагируем на ответ 
-                        // закрываем Modal
-                      } }
-                    ><Text>Добавить</Text></TouchableOpacity>
-                </View>
+              animationType="slide"
+              transparent={false}
+              visible={this.state.isModalVisible}
+              onRequestClose={() => {
+                  Alert.alert('Modal has been closed.');
+              }}
+            >
+              <View style={{ 
+                flex: 1, 
+                flexDirection: 'column', 
+                justifyContent: 'center',
+                alignItems: 'center',}}
+              >
+                <Button
+                  title="Закрыть"
+                  onPress={() => this.setState({isModalVisible: false}) }
+                />
+                <TextInput
+                  placeholder = "Идентификатор"
+                  placeholderTextColor = '#fff'
+                  style={{width: 300, height: 40, backgroundColor: '#000', color: '#fff', fontFamily: 'montserrat', paddingLeft: 20, marginTop: 5, marginBottom: 20}}
+                  editable = {true}
+                  maxLength = {40}
+                  onChangeText={(id) => {this.setState({id})}}
+                  value={this.state.id}
+                />
+                <TouchableOpacity onPress={this.addDevice} >
+                  <Text>Добавить</Text>
+                </TouchableOpacity>
+              </View>
             </Modal>
           </View>
-
         </ScrollView>
       </View>
     );
