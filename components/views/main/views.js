@@ -5,8 +5,9 @@ import { View, Text, Button, Switch, Slider, Alert, ScrollView, StyleSheet, Touc
 
 // import ModalDropdown from 'react-native-modal-dropdown';
 // import { Table, Row, Rows, TableWrapper } from 'react-native-table-component';
-import { StatusBar, HeaterManual, HeaterAuto, MixerManual, Brewer, Evaporation, ValvesManual, Safety, MixerAuto, Brewing, BrewingTabs, Mixer } from './cards';
+import { StatusBar, HeaterManual, HeaterAuto, MixerManual, Brewer, Evaporation, Safety, MixerAuto, Brewing, BrewingTabs, Mixer, SettingsPopup, Sensors } from './cards';
 import { Card } from '../../ui';
+import { ManualControlContainer, SensorsContainer, HeaterAutoContainer, SafetyContainer, MixerContainer, EvaporationContainer } from '../../../containers/uiContainers';
 
 export class DpLitePlus extends React.Component {
   constructor(){
@@ -43,6 +44,7 @@ export class DpLitePlus extends React.Component {
           <Card header={{title: 'Варка'}}><HeaterAuto items={heaterAutoItems} onAction={this.props.onAction}></HeaterAuto></Card>
           {/* мешалка */}
           <Card header={{title: 'Мешалка'}}><Mixer items={mixerManualItems} onAction={this.props.onAction}></Mixer></Card>
+          <SettingsPopup />
         </ScrollView>
         
       </View>
@@ -71,19 +73,24 @@ export class DpPro extends React.Component {
           backgroundColor: 'f6f6f6'
         }}>
           {/* topbar */}
-          <StatusBar onAction={this.props.onAction}></StatusBar>
-          {/* ручной нагрев */}
-          <Card header={{title: 'Ручной нагрев'}}><HeaterManual onAction={this.props.onAction}></HeaterManual></Card>
-          {/* варка */}
-          <Card header={{title: 'Варка'}}><HeaterAuto items={heaterAutoItems} onAction={this.props.onAction}></HeaterAuto></Card>
-          {/* перегон */}
-          <Card header={{title: 'Перегон'}}><Evaporation onAction={this.props.onAction}></Evaporation></Card>
+          {/* <StatusBar onAction={this.props.onAction}></StatusBar> */}
+          <Card header={{title: 'Датчики'}} isActive={true}><SensorsContainer id={this.props.system.id} /></Card>
           {/* ручное управление клапанами, насосом */}
-          <Card header={{title: 'Ручное управление'}}><ValvesManual onAction={this.props.onAction}></ValvesManual></Card>
+          <Card header={{title: 'Ручное управление'}}><ManualControlContainer id={this.props.system.id} onAction={this.props.onAction}></ManualControlContainer></Card>
+          {/* варка */}
+          <Card header={{title: 'Варка'}}><HeaterAutoContainer id={this.props.system.id} onAction={this.props.onAction}></HeaterAutoContainer></Card>
+          {/* перегон */}
+          <Card header={{title: 'Перегон'}}><EvaporationContainer id={this.props.system.id} onAction={this.props.onAction}></EvaporationContainer></Card>
           {/* Правила безопасности */}
-          <Card header={{title: 'Безопасность'}}><Safety onAction={this.props.onAction}></Safety></Card>
+          <Card header={{title: 'Безопасность'}}><SafetyContainer id={this.props.system.id} onAction={this.props.onAction}></SafetyContainer></Card>
           {/* автоматическая мешалка */}
-          <Card header={{title: 'Мешалка'}}><Mixer onAction={this.props.onAction}></Mixer></Card>
+          <Card header={{title: 'Мешалка'}}><MixerContainer id={this.props.system.id} onAction={this.props.onAction}></MixerContainer></Card>
+          <SettingsPopup />
+          <Card header={{title: 'Идет автонастройка'}} isActive={true} disabled={true}>
+            <View>
+              <Button title="Остановить" />
+            </View>
+          </Card>
         </ScrollView>
       </View>
     )

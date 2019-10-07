@@ -13,6 +13,12 @@ const storeData = {
         things: {
 
         },
+        items: {
+            
+        },
+        methods: {
+            
+        }
         //     '1234567': {
         //         id: "thing2454231",
         //         name: "Thing 2454231",

@@ -27,9 +27,15 @@ export default class DeviceScreen extends React.Component {
   }
 
   render() {
-    // console.log(this.props)
     const {id} = this.props.navigation.state.params // либо берем из store
-    const {devices, things} = this.props.store.panel
+    let {devices, things, items} = this.props.store.panel
+    // things = things[id]
+    // items = items[id]
+
+    // for (var key in items) {
+    //   console.log(items[key].id)
+    // }
+
     let device = {
       id: '',
       type: ''
@@ -37,7 +43,7 @@ export default class DeviceScreen extends React.Component {
     device = devices.find(d => {
       return (d.id === id)
     })
-    console.log('Device', device)
+    // console.log('Device', device)
     // console.log(id)
     // console.log(this.props)
 

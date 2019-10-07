@@ -24,7 +24,7 @@ const devices = (state = {}, action) => {
             return new_state
         case C.UPDATE_SYSTEM:
             const {id, status, systemType, systemModel} = action
-            console.log('Action', action)
+            // console.log('Action', action)
             
             new_state = new_state.map((system)=>{
                 if(system.id === id){
@@ -32,15 +32,28 @@ const devices = (state = {}, action) => {
                         system.online = status
                     }
                     if(systemType !== undefined){
-                        // system.type = systemType + '-' + systemModel
-                        system.type = 'dp-lite-plus'
+                        system.type = systemType + '-' + systemModel
+                        // system.type = 'dp-lite-plus'
                     }
                 }
                 return system
             })
             // console.log(new_state)
             return new_state
-            
+        case C.ADD_SYSTEM:
+            new_state.push({
+                id: action.id,
+                name: 'Новое устройство',
+                online: false,
+                type: undefined
+            })
+            console.log(new_state)
+            return new_state
+        case C.DELETE_SYSTEM:
+            new_state = new_state.filter((system)=>{
+                return (system.id !== action.id)
+            })
+            return new_state  
         default:
             return state
     }
@@ -137,6 +150,72 @@ const things = (state = {}, action) => {
                 })
                 return new_state
             }
+        case C.DELETE_SYSTEM:
+            if(new_state[action.id]){
+                delete new_state[action.id]
+            }
+            return new_state 
+        default :
+            return state
+    }
+}
+
+const items = (state = {}, action) => {
+    let new_state = JSON.parse(JSON.stringify(state))
+    switch (action.type) {
+        case C.UPDATE_THINGS:
+            new_state[action.id] = action.things.reduce((sum, thing)=>{
+                const items = thing.items.reduce((sum2, item)=>{
+                    item.thingId = thing.id
+                    return {...sum2, [item.id]: item}
+                }, {})
+                return {...sum, ...items}
+            }, {})
+            // console.log('New items:', new_state)
+            return new_state
+        case C.ITEM_CHANGE_VALUE:
+            new_state[action.systemId][action.itemId].value = action.value
+            // if( !new_state || !new_state[action.id] ) { 
+            //     return new_state 
+            // }
+            // new_state[action.id].forEach((thing, i) => {
+            //     if(thing.id === action.thingId){
+            //         thing.items.forEach((item, k) => {
+            //             if(item.id === action.itemId){
+            //                 new_state[action.systemId][i].items[k].value = action.value
+            //             }
+            //         })
+            //     }
+            // })
+            return new_state
+        case C.DELETE_SYSTEM:
+            if(new_state[action.id]){
+                delete new_state[action.id]
+            }
+            return new_state 
+        default :
+            return state
+    }
+}
+
+const methods = (state = {}, action) => {
+    let new_state = JSON.parse(JSON.stringify(state))
+    switch (action.type) {
+        case C.UPDATE_THINGS:
+            new_state[action.id] = action.things.reduce((sum, thing)=>{
+                const items = thing.methods.reduce((sum2, item)=>{
+                    item.thingId = thing.id
+                    return {...sum2, [item.id]: item}
+                }, {})
+                return {...sum, ...items}
+            }, {})
+            // console.log('New methods: ', new_state)
+            return new_state
+        case C.DELETE_SYSTEM:
+            if(new_state[action.id]){
+                delete new_state[action.id]
+            }
+            return new_state
         default :
             return state
     }
@@ -209,9 +288,15 @@ const user = (state = {}, action) => {
 // }
 
 
+// const devices = combineReducers({
+    
+// })
+
 const panel = combineReducers({
     devices,
-    things
+    things,
+    items,
+    methods
     // openedThings, 
     // connections 
 })

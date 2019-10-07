@@ -229,14 +229,14 @@ export default class HydraService {
 		return true
     }
     
-    changeValue(thing, item, value){
-		this.log(thing, item, value)
-        this.socket.send(JSON.stringify({'action': 'set', 'thing': thing, 'item': item, 'value': value}))
+  changeValue(thing, item, value, systemId){
+		console.log(thing, item, value, systemId)
+		this.socket.send(JSON.stringify({'action': 'set', 'system-id': systemId, 'thing': thing, 'item': item, 'value': value}))
 	}
 	
-	runMethod(thing, method, parameters){
-		this.log(thing, method, parameters)
-        this.socket.send(JSON.stringify({'action': 'call', 'thing': thing, 'method': method, 'arguments': parameters }))
-    }
+	runMethod(thing, method, parameters, systemId){
+		console.log(thing, method, parameters, systemId)
+		this.socket.send(JSON.stringify({'action': 'call', 'system-id': systemId, 'thing': thing, 'method': method, 'arguments': parameters }))
+	}
 
 }

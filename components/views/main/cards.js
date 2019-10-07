@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text, Button, Switch, Slider, Alert, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import { ToggleSwitch, DiscreteSensor, NumberSlider, NumberWithPopup, Tabs, withTitle, MultipleNumberSlider, HeaderMedium, TimePicker } from '../../ui';
+import { View, Text, Button, Switch, Slider, Alert, ScrollView, StyleSheet, TouchableOpacity, Modal, Picker } from 'react-native';
+import { ToggleSwitch, DiscreteSensor, NumberSlider, NumberWithPopup, Tabs, withTitle, MultipleNumberSlider, HeaderMedium, TimePicker, HeaderLarge, MultipleItemsSlider, AnalogSensor, HeaderSmall, ChooserWithRename, StepsTable, ButtonWithConfirm } from '../../ui';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import ModalDropdown from 'react-native-modal-dropdown';
 import { Table, Row, Rows, TableWrapper } from 'react-native-table-component';
+
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faCog, faTimes } from '@fortawesome/free-solid-svg-icons'
 
 export class StatusBar extends React.Component {
   
@@ -61,6 +64,34 @@ export class StatusBar extends React.Component {
     )
   }
 }
+
+
+export class Sensors extends React.Component {
+  
+  render(){
+    // const { temperature1, temperature2, temperature3, temperature4, temperature5, temperature6, pressure1, pressure2 } = this.props
+    const { temperatures, pressures } = this.props
+    return (
+      <View>
+        <HeaderMedium>Температура</HeaderMedium>
+        {
+          temperatures.map((item) => 
+            <AnalogSensor key={item.id} item={item} measure='˚C' />
+          )
+        }
+        {(temperatures.length === 0) ? <HeaderSmall>Датчики отсутствуют</HeaderSmall> : null}
+        <HeaderMedium>Давление</HeaderMedium>
+        {
+          pressures.map((item) => 
+            <AnalogSensor key={item.id} item={item} measure='бар' />
+          )
+        }
+        {(pressures.length === 0) ? <HeaderSmall>Датчики отсутствуют</HeaderSmall> : null}
+      </View>
+    )
+  }
+}
+
 export class HeaterManual extends React.Component {
   render() {
 
@@ -95,10 +126,17 @@ export class HeaterManual extends React.Component {
 
 export class HeaterAuto extends React.Component {
   render() {
+    const {state, onRunMethod, stop} = this.props
+    if(state.value != 0){
+      return <ButtonWithConfirm 
+        title="Остановить" 
+        actionTitle="Остановить"
+        onAction={()=>{onRunMethod(stop.thingId, stop.id, {})}}
+      />
+    }
     return (
       <View>
-        <Text>Варка</Text>
-        <BrewingTabs />
+        <BrewingTabs {...this.props} />
       </View>
     )
   }
@@ -111,37 +149,57 @@ class BrewingTabs extends React.Component {
     { key: 'brewing', title: 'Кипячение' },
     { key: 'cooling', title: 'Охлаждение' },
   ]
-  components = {
-    'heating': <Heating />,
-    'pauses': <Pauses />,
-    'brewing': <Brewing />,
-    'cooling': <Cooling />,
-  }
   render(){
     const active = 1
+    const components = {
+      'heating': <Warming {...this.props} />,
+      'pauses': <Brewing {...this.props} />,
+      'brewing': <Boiling {...this.props} />,
+      'cooling': <Cooling {...this.props} />,
+    }
     // return <Text>Text</Text>
-    return <Tabs data={{routes: this.routes, components: this.components, active}} />
+    return <Tabs data={{routes: this.routes, components: components, active}} />
   }
 }
 
 // разогрев
-class Heating extends React.Component {
-  parameters = {
-    tempSet: '40',
-    delay: '1000' // 1000c задержки
+export class Warming extends React.Component {
+
+  constructor(props){
+    super(props)
+    this.state = {
+      delay: new Date(),
+    }
+    this.onStart = this.onStart.bind(this)
   }
+
+  onStart(){
+    const {onRunMethod, warm} = this.props
+    const date = this.state.delay
+    const now = new Date()
+    console.log(date, now)
+    const delay = date - now
+    onRunMethod(warm.thingId, warm.id, {delay: delay.toString()})
+  }
+
   render() {
+    const {state, temperature, warmingTemperature, warmingDelay, warmingStartTime, onChangeValue, onRunMethod, warm, stop} = this.props
     return (
       <View>
-        <NumberSlider name="Температура" onChange={this.props.onAction}/>
-        <TimePicker name="Задержка" onChange={this.props.onAction} />
+        <NumberSlider item={warmingTemperature} onChange={(value)=>onChangeValue(warmingTemperature, value)} />
+        <TimePicker name="Задержка" value={this.state.delay} onChange={(value)=>this.setState({delay: value})} />
+        <ButtonWithConfirm 
+          title="Начать" 
+          actionTitle="Начать"
+          onAction={()=>{this.onStart()}}
+        />
       </View>
     )
   }
 }
 
 // паузы
-class Pauses extends React.Component {
+export class Brewing extends React.Component {
 
   constructor(props){
     super(props)
@@ -150,193 +208,66 @@ class Pauses extends React.Component {
     }
   }
 
-  heater = {
-    name: 'Паузы',
-    icon: 'icon.png',
-    enabled: true,
-    programs: {
-      1:{
-        steps: {
-          1: {
-            time: '15',
-            temp: '55'
-          },
-          2: {
-            time: '15',
-            temp: '55'
-          },
-          3: {
-            time: '15',
-            temp: '55'
-          },
-          4: {
-            time: '15',
-            temp: '55'
-          },
-          5: {
-            time: '15',
-            temp: '55'
-          }
-        }
-      },
-      2:{
-        steps: {
-          1: {
-            time: '15',
-            temp: '55'
-          },
-          2: {
-            time: '15',
-            temp: '55'
-          },
-          3: {
-            time: '15',
-            temp: '55'
-          },
-          4: {
-            time: '15',
-            temp: '55'
-          },
-          5: {
-            time: '15',
-            temp: '55'
-          }
-        }
-      },
-      3:{
-        steps: {
-          1: {
-            time: '15',
-            temp: '55'
-          },
-          2: {
-            time: '15',
-            temp: '55'
-          },
-          3: {
-            time: '15',
-            temp: '55'
-          },
-          4: {
-            time: '15',
-            temp: '55'
-          },
-          5: {
-            time: '15',
-            temp: '55'
-          }
-        }
-      }
-    },
-    status: {
-      value: 'ON',
-      program: 1,
-      step: 3,
-      temperature: '30'
-    },
-    power: {
-      label: 'Мощность',
-      value: '100',
-      measure: '%',
-      enabled: true
-    }
-  
-  }
-  tableHead = ['Шаг', 'Температура', 'Время']
-  programs = {
-    list: ['Программа 1', 'Программа 2', 'Программа 3'],
-    isNamesChangeable: false
-  }
-
   render(){
 
-    const steps = this.heater.programs[this.heater.status.program].steps
+    const { state, program, step, programs, onChangeValue, onChangeValues, onRunMethod, brew, stop } = this.props
+    // const steps = this.heater.programs[this.heater.status.program].steps
 
-    // tableData = [
-    //     ['1', '2', '3', '4'],
-    //     ['a', 'b', 'c', 'd'],
-    //     ['1', '2', '3', '456\n789'],
-    //     ['a', 'b', 'c', 'd']
-    // ]
-    // паузы
-    // 3 программы (dropdown?)
-    // таблица со значениями
-    // кнопка старта/остановки
-    // отложенное включение?
     return(
       <View>
-        <ModalDropdown defaultValue={'Программа ' + this.heater.status.program} options={this.programs.list} />
-        <View>
-          <Table>
-            <Row data={this.tableHead}></Row>
-            <TableWrapper>
-            {
-              Object.keys(steps).map((i)=>{
-                return(
-                  <Row key={i} data={[i, steps[i].temp, steps[i].time]} />
-                )
-              })
-            }
-            </TableWrapper>
-          </Table>
-        </View>
-        <View>
-          <TouchableOpacity onPress={()=>{this.setState({isModalVisible: true})}}>
-            <Text>Начать</Text>
-          </TouchableOpacity>
-          <Modal
-            animationType="slide"
-            transparent={false}
-            visible={this.state.isModalVisible}
-            onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-            }}>
-            <View style={{ 
-              flex: 1, 
-              flexDirection: 'column', 
-              justifyContent: 'center',
-              alignItems: 'center',}}>
-              <Button
-                title="Закрыть"
-                onPress={() => this.setState({isModalVisible: false}) }
-              />
-              <TouchableOpacity 
-                onPress={() => {
-                  const { id, password } = this.state
-                  console.log(id, password)
-                  // отправляем запрос в облако
-                  // реагируем на ответ 
-                  // закрываем Modal
-                } }
-              >
-                <Text>Добавить</Text>
-              </TouchableOpacity>
-            </View>
-          </Modal>
-        </View>
+        <ChooserWithRename label="Рецепт" item={program} items={programs} onChange={(value)=>onChangeValue(program, value)} />
+        <StepsTable 
+          stepsQty={programs[program.value].stepsQty} 
+          steps={programs[program.value].steps} 
+          activeStep={step.value} 
+          parametersIds={['temp', 'time', 'on', 'off']} 
+          onChangeStep={(items, values)=>{onChangeValues(items, values)}}
+          onChooseStep={(value)=>{onChangeValue(step, value)}}
+          onChangeItem={(item, value)=>{onChangeValue(item, value)}}
+        />
+
+        <ButtonWithConfirm 
+          title="Начать" 
+          actionTitle="Начать"
+          onAction={()=>{onRunMethod(brew.thingId, brew.id, {})}}
+        />
+
       </View>
     )
   }
 }
 // кипячение
-class Brewing extends React.Component {
+export class Boiling extends React.Component {
   render() {
+    const {state, temperature, boilingTime, boilingTemperature, boilingStartTime, hopTime1, hopTime2, onChangeValue, onChangeValues, onRunMethod, boil, stop} = this.props
     return (
       <View>
-        <NumberSlider name="Температура" onChange={this.props.onAction}/>
-        <NumberSlider name="Время" onChange={this.props.onAction}/>
-        <MultipleNumberSlider name="Засыпь хмеля" onChange={this.props.onAction}/>
+        <NumberSlider item={boilingTemperature} onChange={(value)=>onChangeValue(boilingTemperature, value)} />
+        <NumberSlider item={boilingTime} onChange={(value)=>onChangeValue(boilingTime, value)} />
+        <MultipleItemsSlider name="Засыпь хмеля" items={[hopTime1, hopTime2]} onChange={(values)=>onChangeValues([hopTime1, hopTime2], values)} />
+        <ButtonWithConfirm 
+          title="Начать" 
+          actionTitle="Начать"
+          onAction={()=>{onRunMethod(boil.thingId, boil.id, {})}}
+        />
       </View>
     )
   }
 }
 
 // Охлаждение
-class Cooling extends React.Component {
+export class Cooling extends React.Component {
   render() {
+    const {state, temperature, coolingTemperature, onChangeValue, onRunMethod, cool, stop} = this.props
+    // console.log(stop)
     return (
       <View>
-        <NumberSlider name="Температура" onChange={this.props.onAction}/>
+        <NumberSlider item={coolingTemperature} onChange={(value)=>onChangeValue(coolingTemperature, value)} />
+        <ButtonWithConfirm 
+          title="Начать" 
+          actionTitle="Начать"
+          onAction={()=>{onRunMethod(cool.thingId, cool.id, {})}}
+        />
       </View>
     )
   }
@@ -344,55 +275,126 @@ class Cooling extends React.Component {
 
 // перегон
 export class Evaporation extends React.Component {
+  constructor(props){
+    super(props)
+    this.state = {
+      minHeaterPower: props.minHeaterPower.value,
+      pickSwitches: props.pickSwitches.value,
+      pickTempDelta: props.pickTempDelta.value,
+      valveCloseDelay: props.valveCloseDelay.value
+    }
+  }
   render() {
+    const { state, program, step, programs, minHeaterPower, pickSwitches, pickTempDelta, valveCloseDelay, onChangeValue, onChangeValues, onRunMethod, start, stop } = this.props
+    // console.log("Evaporation state: ", state)
+
+    // локальные изменения
+    const settings = <View>
+      <NumberSlider item={minHeaterPower} onChange={(value)=>this.setState({minHeaterPower: value})} />
+      <NumberSlider item={pickSwitches} onChange={(value)=>this.setState({pickSwitches: value})} />
+      <NumberSlider item={pickTempDelta} onChange={(value)=>this.setState({pickTempDelta: value})} />
+      <NumberSlider item={valveCloseDelay} onChange={(value)=>this.setState({valveCloseDelay: value})} />
+    </View>
+
+    if(state.value == 1){
+      return <ButtonWithConfirm 
+        title="Остановить" 
+        actionTitle="Остановить"
+        onAction={()=>{onRunMethod(stop.thingId, stop.id, {})}}
+      />
+    }
+
+
     return (
       <View>
+        <ChooserWithRename label="Рецепт" item={program} items={programs} onChange={(value)=>onChangeValue(program, value)} />
+        {/* выбор датчика */}
+        <ChooserWithRename 
+          label="Датчик" 
+          item={programs[program.value].sensor} 
+          items={{1:{name: {value:'Дист'}}, 2:{name: {value:'Рект'}}}} 
+          onChange={(value)=>onChangeValue(programs[program.value].sensor, value)} 
+        /> 
+        
+        <StepsTable 
+          stepsQty={programs[program.value].stepsQty} 
+          steps={programs[program.value].steps}
+          activeStep={step.value} 
+          parametersIds={['mode', 'heater', 'cooler', 'temp', 'time', 'valve']} 
+          settings={settings}
+          onSaveSettings={()=>{onChangeValues([minHeaterPower, pickSwitches, pickTempDelta, valveCloseDelay], [this.state.minHeaterPower, this.state.pickSwitches, this.state.pickTempDelta, this.state.valveCloseDelay])}}
+          onChangeStep={(items, values)=>{onChangeValues(items, values)}}
+          onChooseStep={(value)=>{onChangeValue(step, value)}}
+          onChangeItem={(item, value)=>{onChangeValue(item, value)}}
+        />
+
+        <ButtonWithConfirm 
+          title="Начать" 
+          actionTitle="Начать"
+          onAction={()=>{onRunMethod(start.thingId, start.id, {})}}
+        />
         
       </View>
     )
   }
 }
 
+// export class EvaporationSettings extends React.Component {
+//   constructor(props){
+//     super(props)
+//     this.state = {
+//       minHeaterPower: props.minHeaterPower.value,
+//       pickSwitches: props.pickSwitches.value,
+//       pickTempDelta: props.pickTempDelta.value,
+//       valveCloseDelay: props.valveCloseDelay.value
+//     }
+//   }
+//   render(){
+//     // modal must be here !?
+//     return(
+//       <View>
+//         <NumberSlider item={minHeaterPower} onChange={(value)=>this.setState({minHeaterPower: value})} />
+//         <NumberSlider item={pickSwitches} onChange={(value)=>this.setState({pickSwitches: value})} />
+//         <NumberSlider item={pickTempDelta} onChange={(value)=>this.setState({pickTempDelta: value})} />
+//         <NumberSlider item={valveCloseDelay} onChange={(value)=>this.setState({valveCloseDelay: value})} />
+//       </View>
+//     )
+//   }
+// }
+
+// export class ItemsGroup extends React.Component {
+//   render(){
+//     return(
+//       <View>
+
+//       </View>
+//     )
+//   }
+// }
 
 
 
 
 
-
-export class ValvesManual extends React.Component {
-  // ручное управление клапанами, насосом
+export class ManualControl extends React.Component {
   render() {
-    const arr = [
-      {
-        name: 'Клапан 1',
-        icon: 'icon.png',
-        value: 'ON',
-        enabled: false
-      },
-      {
-        name: 'Клапан 2',
-        icon: 'icon.png',
-        value: 'OFF',
-        enabled: true
-      },
-      {
-        name: 'Насос',
-        icon: 'pump.png',
-        value: 'ON',
-        enabled: true
-      }
-    ]
+    // console.log(this.props)
+    const {heaterPower, coolerPower, shellFilling, distributeValve1, distributeValve2, distributeValve3, onChangeValue} = this.props
     return (
       <View>
-        {
-          arr.map((el, i)=>{
-            return(
-              <View key={i}>
-                <ToggleSwitch name={el.name} value={(el.value === 'ON')} disabled={!el.enabled} onChange={this.props.onAction}></ToggleSwitch>
-              </View>
-            )
-          })
-        }
+        <View>
+          <NumberSlider item={heaterPower} onChange={(value)=>onChangeValue(heaterPower, value)}/>
+          <NumberSlider item={coolerPower} onChange={(value)=>onChangeValue(coolerPower, value)}/>
+          <ToggleSwitch item={shellFilling} onChange={(value)=>onChangeValue(shellFilling, value)}/>
+        </View>
+        <View>
+          <HeaderMedium>Распределительные клапаны</HeaderMedium>
+          <View>
+            <ToggleSwitch item={distributeValve1} onChange={(value)=>onChangeValue(distributeValve1, value)}></ToggleSwitch>
+            <ToggleSwitch item={distributeValve2} onChange={(value)=>onChangeValue(distributeValve2, value)}></ToggleSwitch>
+            <ToggleSwitch item={distributeValve3} onChange={(value)=>onChangeValue(distributeValve3, value)}></ToggleSwitch>
+          </View>
+        </View>
       </View>
     )
   }
@@ -401,17 +403,21 @@ export class ValvesManual extends React.Component {
 export class Safety extends React.Component {
   // глобальные правила безопасности
   render() {
+    const {state, heaterMaxPower, boilerTemperatureLimit, atmTemperatureLimit, outTemperatureLimit, waterSupplyTemperatureLimit, shellTemperatureLimit, boilerPressureLimit, shellPressureLimitMin, shellPressureLimitMax, onChangeValue, onChangeValues} = this.props
+    
     return (
       <View>
+        <HeaderMedium>Нагреватель</HeaderMedium>
+        <NumberWithPopup item={heaterMaxPower} name={'Максимальная мощность'} value={100} onChange={(value)=>onChangeValue(heaterMaxPower, value)}></NumberWithPopup>
         <HeaderMedium>Температура</HeaderMedium>
-        <NumberWithPopup name={'Температура в котле'} value={100}></NumberWithPopup>
-        <NumberWithPopup name={'Температура атмосферы РК'} value={100}></NumberWithPopup>
-        <NumberWithPopup name={'Температура на выходе'} value={100}></NumberWithPopup>
-        <NumberWithPopup name={'Температура подачи воды'} value={100}></NumberWithPopup>
-        <NumberWithPopup name={'Температура в рубашке'} value={100}></NumberWithPopup>
+        <NumberWithPopup item={boilerTemperatureLimit} name={'В котле'} value={100} onChange={(value)=>onChangeValue(boilerTemperatureLimit, value)}></NumberWithPopup>
+        <NumberWithPopup item={atmTemperatureLimit} name={'ТСА'} value={100} onChange={(value)=>onChangeValue(atmTemperatureLimit, value)}></NumberWithPopup>
+        <NumberWithPopup item={outTemperatureLimit} name={'Продукт на выходе'} value={100} onChange={(value)=>onChangeValue(outTemperatureLimit, value)}></NumberWithPopup>
+        <NumberWithPopup item={waterSupplyTemperatureLimit} name={'Подача воды'} value={100} onChange={(value)=>onChangeValue(waterSupplyTemperatureLimit, value)}></NumberWithPopup>
+        <NumberWithPopup item={shellTemperatureLimit} name={'В рубашке'} value={100} onChange={(value)=>onChangeValue(shellTemperatureLimit, value)}></NumberWithPopup>
         <HeaderMedium>Давление</HeaderMedium>
-        <NumberWithPopup name={'Давление в котле'} value={100}></NumberWithPopup>
-        <NumberWithPopup name={'Давление в рубашке'} value={100}></NumberWithPopup>
+        <NumberWithPopup item={boilerPressureLimit} name={'В котле'} value={100} onChange={(value)=>onChangeValue(boilerPressureLimit, value)}></NumberWithPopup>
+        <MultipleItemsSlider name="В рубашке" items={[shellPressureLimitMin, shellPressureLimitMax]} onChange={(values)=>onChangeValues([shellPressureLimitMin, shellPressureLimitMax], values)}/>
       </View>
     )
   }
@@ -424,8 +430,8 @@ export class Mixer extends React.Component {
   render(){
     return (
       <View>
-        <MixerManual />
-        <MixerAuto />
+        <MixerManual {...this.props} />
+        <MixerAuto {...this.props} />
       </View>
     )
   }
@@ -434,9 +440,10 @@ export class Mixer extends React.Component {
 export class MixerManual extends React.Component {
   render() {
     // вкл/откл мешалки (Switch)
+    const {state, regime, onChangeValue} = this.props
     return (
     <View>
-      <ToggleSwitch name="Ручное управление" onChange={this.props.onAction}/>
+      <ToggleSwitch item={state} name="Ручное управление" onChange={(value)=>onChangeValue(state, value)}/>
     </View>
     )
   }
@@ -446,16 +453,16 @@ export class MixerAuto extends React.Component {
     { key: 'timer', title: 'Таймер' },
     { key: 'periodic', title: 'Период' },
   ]
-  components = {
-    'timer': <MixerTimer />,
-    'periodic': <MixerPeriodic />,
-  }
   render() {
     // отложенное и периодическое включение
     const active = 0
+    const components = {
+      'timer': <MixerTimer {...this.props} />,
+      'periodic': <MixerPeriodic {...this.props} />,
+    }
     return (
       <View>
-        <Tabs name="Автоматическое управление" data={{routes: this.routes, components: this.components, active}} />
+        <Tabs name="Автоматическое управление" data={{routes: this.routes, components: components, active}} />
       </View>
     )
   }
@@ -463,22 +470,176 @@ export class MixerAuto extends React.Component {
 
 
 class MixerTimer extends React.Component {
+  constructor(props){
+    super(props)
+    this.state = {
+      delay: new Date(),
+    }
+    this.onStart = this.onStart.bind(this)
+  }
+
+  onStart(){
+    const {onRunMethod, delayed} = this.props
+    // преобразовываем время в задержку
+    const date = this.state.delay
+    const now = new Date()
+    let delay = date - now
+    delay = delay / 1000
+    delay = Math.round(delay)
+    onRunMethod(delayed.thingId, delayed.id, {delay: delay.toString()})
+  }
+
   render(){
-    return (
-      <View>
-        <TimePicker name="Задержка" onChange={this.props.onAction} />
-      </View>
-    )
+    const {startTime, regime, onRunMethod, delayed, off} = this.props
+    if(regime.value == 0){
+      return (
+        <View>
+          <TimePicker name="Задержка" value={this.state.delay} onChange={(value)=>this.setState({delay: value})} />
+          {/* delay param */}
+          <ButtonWithConfirm 
+            title="Начать" 
+            actionTitle="Начать"
+            onAction={()=>{this.onStart()}}
+          />
+        </View>
+      )
+    }else if(regime.value == 1){
+      return (
+        <View>
+          {/* Инфо о процессе */}
+          <ButtonWithConfirm 
+            title="Остановить" 
+            actionTitle="Остановить"
+            onAction={()=>{onRunMethod(off.thingId, off.id, {})}}
+          />
+        </View>
+      )
+    }else{
+      return null
+    }
   }
 }
 
 class MixerPeriodic extends React.Component {
+  constructor(props){
+    super(props)
+    this.state = {
+      on: props.onTime.value,
+      off: props.offTime.value,
+      days: props.totalTime.value
+    }
+  }
   render(){
-    return (
-      <View>
-        <NumberSlider name="Время включения" onChange={this.props.onAction}/>
-        <NumberSlider name="Время отключения" onChange={this.props.onAction}/>
-        <NumberSlider name="Период" onChange={this.props.onAction}/>
+    // console.log(this.props)
+    const {offTime, onTime, totalTime, regime, onChangeValue, onRunMethod, periodic, off} = this.props
+    if(regime.value == 0){
+      return (
+        <View>
+          <NumberSlider item={onTime} name="Время включения" measure="мин" onChange={(value)=>this.setState({on: value.toString()})}/>
+          <NumberSlider item={offTime} name="Время отключения" measure="мин" onChange={(value)=>this.setState({off: value.toString()})}/>
+          <NumberSlider item={totalTime} name="Период" measure="дн" onChange={(value)=>this.setState({days: value.toString()})}/>
+          {/* params */}
+          <ButtonWithConfirm 
+            title="Начать" 
+            actionTitle="Начать"
+            onAction={()=>{onRunMethod(periodic.thingId, periodic.id, this.state)}}
+          />
+        </View>
+      )
+    }else if(regime.value == 2){
+      return (
+        <View>
+          {/* Инфо о процессе */}
+          <ButtonWithConfirm 
+            title="Остановить" 
+            actionTitle="Остановить"
+            onAction={()=>{onRunMethod(off.thingId, off.id, {})}}
+          />
+        </View>
+      )
+    }else{
+      return null
+    }
+  }
+}
+
+export class SettingsPopup extends React.Component {
+  constructor(props){
+    super(props)
+    this.state = {
+      modalVisible: false,
+    }
+
+    // получаем данные, изменяем по подтверждению
+
+  }
+  setModalVisible(visible) {
+    this.setState({modalVisible: visible});
+  }
+  render(){
+    return(
+      <View style={styles.item}>
+        <View
+          style={{flex: 1, justifyContent: 'flex-end', alignItems: 'flex-end'}}
+        >
+          <TouchableOpacity
+            onPress={() => {
+              this.setModalVisible(true);
+            }}
+            style={{padding: 20}}
+          >
+            <FontAwesomeIcon 
+              icon={faCog}
+              color="#fbc531" 
+              size={32}
+            />
+          </TouchableOpacity>
+        </View>
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {this.setModalVisible(!this.state.modalVisible)}}>
+          <View style={{ 
+            padding: 25,
+            flex: 1, 
+            flexDirection: 'column', 
+            alignItems: 'stretch',
+            justifyContent: 'flex-start'
+          }}>
+            <View style={{ 
+              height: 'auto',
+              flex: 1, 
+              flexDirection: 'row', 
+              justifyContent: 'flex-end',
+              alignItems: 'flex-end'
+            }}>
+              <TouchableOpacity
+                onPress={() => {
+                  this.setModalVisible(!this.state.modalVisible)
+                }}>
+                <FontAwesomeIcon 
+                  icon={faTimes}
+                  color="#fbc531" 
+                  size={32}
+                />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <HeaderLarge>Настройки ПИД-регулятора</HeaderLarge>
+              <HeaderMedium>Коэффициенты</HeaderMedium>
+              {/* меняем по нажатию сохранить */}
+              <NumberSlider name="Пропорциональный" onChange={this.props.onAction}/>
+              <NumberSlider name="Интегральный" onChange={this.props.onAction}/>
+              <NumberSlider name="Дифференцируемый" onChange={this.props.onAction}/>
+              <Button title="Сохранить" />
+              <HeaderMedium>Автонастройка</HeaderMedium>
+              {/* меняем сразу */}
+              <NumberSlider name="Уставка" measure="˚C" onChange={this.props.onAction}/>
+              <Button title="Начать автонастройку" />
+            </View>
+          </View>
+        </Modal>
       </View>
     )
   }

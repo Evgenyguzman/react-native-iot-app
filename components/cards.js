@@ -1,11 +1,62 @@
 import React from 'react';
-import { View, Text, Button, TouchableOpacity } from 'react-native';
+import { View, Text, Button, TouchableOpacity, StyleSheet } from 'react-native';
 import { MonoText } from './StyledText';
 
-export class DeviceCard extends React.Component {
-  constructor(){
-    super()
+import { SwipeRow } from 'react-native-swipe-list-view';
 
+
+export class DeviceCard extends React.Component {
+  render(){
+    return(
+      <SwipeRow
+        disableRightSwipe={true}
+        rightOpenValue={-150}
+      >
+        <View style={styles.standaloneRowBack}>
+          <Text>?</Text>
+          <TouchableOpacity style={{backgroundColor: 'tomato'}} onPress={()=>{this.props.onRemove()}}><Text style={styles.backTextWhite}>Delete</Text></TouchableOpacity>
+        </View>
+        <DeviceCardWithoutSwipe {...this.props} />
+      </SwipeRow>
+    )
+  }
+}
+
+const styles = StyleSheet.create({
+	standaloneRowFront: {
+		alignItems: 'center',
+		backgroundColor: '#e7e7e7',
+		justifyContent: 'center',
+		height: 50,
+	},
+	standaloneRowBack: {
+		alignItems: 'center',
+		backgroundColor: '#e9e9e9',
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		padding: 15
+	},
+	backTextWhite: {
+		color: '#FFF'
+  },
+  backRightBtn: {
+		alignItems: 'center',
+		bottom: 0,
+		justifyContent: 'center',
+		position: 'absolute',
+		top: 0,
+		width: 75
+	},
+	backRightBtnLeft: {
+		backgroundColor: 'blue',
+		right: 75
+	},
+})
+
+export class DeviceCardWithoutSwipe extends React.Component {
+  constructor(props){
+    super(props)
   }
   render() {
     const system = this.props.system
@@ -16,7 +67,7 @@ export class DeviceCard extends React.Component {
     }
 
     // // status = getStatus()
-    const status = ['brewing','heating']
+    const status = ['brewing', 'heating']
     let devices = []
     let statusText = ''
 
@@ -97,7 +148,7 @@ export class DeviceCard extends React.Component {
 
 
     return (
-      <TouchableOpacity 
+        <TouchableOpacity 
         style={{
           paddingHorizontal: 20,
           paddingVertical: 10,

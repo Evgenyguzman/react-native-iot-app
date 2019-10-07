@@ -52,6 +52,8 @@ export default class DevicesScreen extends React.Component {
       id: undefined
     }
 
+    this.addDevice = this.addDevice.bind(this)
+
   }
 
   componentWillMount(){
@@ -73,42 +75,45 @@ export default class DevicesScreen extends React.Component {
       if(res){
         Alert.alert('Устройство успешно добавлено')
         this.setState({isModalVisible: false})
+        this.props.onAdd(id)
+        // обновить список devices
       }else{
         Alert.alert('Ошибка добавления')
       }
     }
   }
 
-  deleteDevice = async (id) => {
-    console.log(id)
-    const hydra = HydraService.getInstance()
-    if(hydra.isConnected()){
-      const res = await hydra.deleteDevice(id)
-      console.log(res)
-      if(res){
-        Alert.alert('Устройство успешно удалено')
-      }else{
-        Alert.alert('Ошибка удаления')
-      }
-    }
-  }
+  // deleteDevice = async (id) => {
+  //   console.log(id)
+  //   const hydra = HydraService.getInstance()
+  //   if(hydra.isConnected()){
+  //     const res = await hydra.deleteDevice(id)
+  //     console.log(res)
+  //     if(res){
+  //       Alert.alert('Устройство успешно удалено')
+  //     }else{
+  //       Alert.alert('Ошибка удаления')
+  //     }
+  //   }
+  // }
 
-  renameDevice = async (id, name) => {
-    console.log(id)
-    const hydra = HydraService.getInstance()
-    if(hydra.isConnected()){
-      const res = await hydra.renameDevice(id, name)
-      console.log(res)
-      if(res){
-      }else{
-        Alert.alert('Ошибка')
-      }
-    }
-  }
+  // renameDevice = async (id, name) => {
+  //   console.log(id)
+  //   const hydra = HydraService.getInstance()
+  //   if(hydra.isConnected()){
+  //     const res = await hydra.renameDevice(id, name)
+  //     console.log(res)
+  //     if(res){
+  //     }else{
+  //       Alert.alert('Ошибка')
+  //     }
+  //   }
+  // }
 
   render() {
     const store = this.props.store
     const { devices, things } = store.panel
+
     // things = {}
     // devices = []
     // console.log(things)
@@ -116,7 +121,7 @@ export default class DevicesScreen extends React.Component {
     // console.log(this.props.screenProps.store.getState())
     // const {name, children} = this.props
 
-    console.log('devices store')
+    // console.log('devices store')
     
     // структура
     // systems = [
@@ -138,7 +143,7 @@ export default class DevicesScreen extends React.Component {
             {
               devices.map((item, i) => 
                 <View key={item.id}>
-                  <DeviceCard navigate={this.props.navigation.navigate} system={item} things={things[item.id]} />
+                  <DeviceCard navigate={this.props.navigation.navigate} system={item} things={things[item.id]} onRemove={()=>{this.props.onDelete(item.id)}} />
                 </View>
               )
             }
@@ -155,7 +160,7 @@ export default class DevicesScreen extends React.Component {
               transparent={false}
               visible={this.state.isModalVisible}
               onRequestClose={() => {
-                  Alert.alert('Modal has been closed.');
+                this.setState({isModalVisible: false})
               }}
             >
               <View style={{ 

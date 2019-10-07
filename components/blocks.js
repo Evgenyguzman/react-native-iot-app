@@ -15,7 +15,7 @@ export class DeviceUnit extends React.Component {
     // const system = {
     //   type: 'dp-lite-plus'
     // }
-    console.log(system)
+    // console.log('System:', system)
     const things = {
       heater: {
 
@@ -28,10 +28,10 @@ export class DeviceUnit extends React.Component {
     let unit = ''
     switch(system.type){
       case 'dp-lite-plus':
-        unit = <DpLitePlus things={things} onAction={this.onAction}></DpLitePlus>
+        unit = <DpLitePlus system={system} things={things} onAction={this.onAction}></DpLitePlus>
         break
       case 'dp-pro':
-        unit = <DpPro things={things} onAction={this.onAction}></DpPro>
+        unit = <DpPro system={system} things={things} onAction={this.onAction}></DpPro>
         break
       default:
         break

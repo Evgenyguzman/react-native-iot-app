@@ -5,6 +5,7 @@ import C from '../store/constants'
 import LoginScreen from '../screens/LoginScreen';
 import DevicesScreen from '../screens/DevicesScreen';
 import DeviceScreen from '../screens/DeviceScreen';
+import { deleteDevice, addDevice } from '../store/actions';
 // import { Item } from '../components/ui/items';
 // import { changeValue, runMethod } from '../redux/actions';
 // import { Method } from '../components/ui/methods';
@@ -31,6 +32,12 @@ export const DevicesScreenContainer = connect(
       dispatch({
         type: C.QUIT
       })
+    },
+    async onAdd(id) {
+      dispatch(addDevice(id))
+    },
+    async onDelete(id) {
+      dispatch(deleteDevice(id))
     }
   })
 )(DevicesScreen)

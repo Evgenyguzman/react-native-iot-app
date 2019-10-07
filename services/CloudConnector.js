@@ -17,6 +17,7 @@ import {
     View,
     Modal
   } from 'react-native';
+import { login } from '../store/actions';
 // import { System } from '../models/models';
 
 export default class CloudConnector extends Component {
@@ -90,11 +91,13 @@ export default class CloudConnector extends Component {
                 isConnected: true
             })
 
-            // try to login
-            // const {user,token} = this.props.store.getState().user
-            // if(user && token){
 
-            // }
+            // try to login
+            console.log(this.props.store.getState().user)
+            const {user,token} = this.props.store.getState().user
+            if(user && token){
+                this.props.store.dispatch(login(user, token))
+            }
             
             hydra.onSystemStatuses = (systemStatuses) => {
                 console.log('On system statuses', systemStatuses)
@@ -114,7 +117,7 @@ export default class CloudConnector extends Component {
             }
 
             hydra.onSystemInfo = (systemType, systemModel, systemVersion, systemId) => {
-                console.log('On system info', systemType, systemModel, systemVersion, systemId)
+                // console.log('On system info', systemType, systemModel, systemVersion, systemId)
                 this.props.store.dispatch({
                     type: C.UPDATE_SYSTEM,
                     systemType,
@@ -135,7 +138,7 @@ export default class CloudConnector extends Component {
             // }
             
             hydra.onThingsData = (things, systemId) => {
-                // console.log('On things', systemId)
+                console.log('On things', systemId)
 
                 // const store = this.props.store.getState()
                 // const type = store.panel.devices[0].type || undefined
@@ -150,6 +153,10 @@ export default class CloudConnector extends Component {
                     things: things,
                 })
             }
+
+            // hydra.onSuccessLogin = () => {
+                
+            // }
 
             // hydra.onThingOffline = (thingId) => {
                 // this.props.store.dispatch({
@@ -166,6 +173,7 @@ export default class CloudConnector extends Component {
             // }
 
             hydra.onItemStateChanged = (thingId, itemId, state, systemId) => {
+                console.log('On item state change')
                 this.props.store.dispatch({
                     type: C.ITEM_CHANGE_STATE,
                     thingId,
@@ -176,7 +184,7 @@ export default class CloudConnector extends Component {
             }
 
             hydra.onItemValueChanged = (thingId, itemId, value, systemId) => {
-                // console.log(thingId, itemId, value, systemId)
+                console.log('On item change', thingId, itemId, value, systemId)
                 this.props.store.dispatch({
                     type: C.ITEM_CHANGE_VALUE,
                     thingId,
