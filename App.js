@@ -1,31 +1,29 @@
-import React from 'react';
-import { AppState, AsyncStorage, Platform, StatusBar, StyleSheet, View, Text } from 'react-native';
-import { AppLoading } from 'expo';
-import { Asset } from 'expo-asset';
-import * as Font from 'expo-font';
-import * as Icon from '@expo/vector-icons';
+import React from 'react'
+import { AppState, AsyncStorage, Platform, StatusBar, StyleSheet, View, Text } from 'react-native'
+import { AppLoading } from 'expo'
+import { Asset } from 'expo-asset'
+import * as Font from 'expo-font'
+import * as Icon from '@expo/vector-icons'
 
-import CloudConnector from './services/CloudConnector';
+import CloudConnector from './services/CloudConnector'
 
 import storeFactory from './store'
 import { Provider } from 'react-redux'
-import AppContainer from './navigation/AppContainer';
+import AppContainer from './navigation/AppContainer'
 
 import {
   setCustomTextInput,
   setCustomText,
-} from 'react-native-global-props';
+} from 'react-native-global-props'
 
 AsyncStorage.clear();
 // let store = storeFactory(null)
 // let isStoreLoading = true
 let store = undefined
 AsyncStorage.getItem('completeStore').then((value)=>{
-  // console.log('hey')
   store = storeFactory(value)
   // isStoreLoading = false
 })
-
 
 // Setting default styles for all Text components.
 const customTextProps = {
@@ -35,18 +33,16 @@ const customTextProps = {
     fontFamily: Platform.OS === 'ios' ? 'montserrat' : 'Roboto',
     color: 'black'
   }
-};
-// setCustomText(customTextProps);
-
+}
 const customTextInputProps = {
   style: {
     fontSize: 20,
     fontFamily: 'montserrat',
     paddingLeft: 10
   }
-};
-// setCustomTextInput(customTextInputProps);
+}
 
+const isForOneDevice = true
 
 export default class App extends React.Component {
   
@@ -64,12 +60,6 @@ export default class App extends React.Component {
 
   render() {
 
-    // const {store} = this.state
-    // console.log(store.getState())
-    // if(isStoreLoading){
-    //   return <View></View>
-    // }
-
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
       return (
         <AppLoading
@@ -82,14 +72,10 @@ export default class App extends React.Component {
       return (
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-
           <Provider store={store}>
-            <CloudConnector store={store} />
+            <CloudConnector isLocalhost={isForOneDevice} store={store} />
             <AppContainer />
           </Provider>
-
-          
-
         </View>
       );
     }

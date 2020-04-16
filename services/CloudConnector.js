@@ -9,8 +9,6 @@ import C from '../store/constants';
 // import { ThingsListContainer, ManagePanelContainer } from '../../containers/PanelContainers';
 import HydraService from './HydraService';
 
-
-
 import {
     Text,
     TextInput,
@@ -41,8 +39,7 @@ export default class CloudConnector extends Component {
     }
 
     render() {
-        // const store = this.props.store.getState()
-        // const user = store.user
+        // const {user} = this.props.store.getState()
         const {isConnected} = this.state
         return (
             <Modal
@@ -56,7 +53,8 @@ export default class CloudConnector extends Component {
                     flex: 1, 
                     flexDirection: 'column', 
                     justifyContent: 'center',
-                    alignItems: 'center',}}>
+                    alignItems: 'center'
+                }}>
                     <Text>НЕТ соединения</Text>
                 </View>
             </Modal>
@@ -72,6 +70,8 @@ export default class CloudConnector extends Component {
 
         const state = this.props.store.getState()
 
+        const {isLocalhost} = this.props
+
         let hydra = HydraService.getInstance()
 
         // const host = connection.host || 'localhost'
@@ -79,8 +79,8 @@ export default class CloudConnector extends Component {
         // const host = '192.168.0.4'
         // const host = '192.168.1.41'
         // const host = '192.168.0.116'
-        const host = '89.108.65.199'
-        const port = '3001'
+        const host = isLocalhost ? '127.0.0.1' : '89.108.65.199'
+        const port = isLocalhost ? '7891' : '3001'
 
         let res = await hydra.connect("ws://" + host + ":" + port)
 
@@ -91,10 +91,15 @@ export default class CloudConnector extends Component {
                 isConnected: true
             })
 
-
             // try to login
             console.log(this.props.store.getState().user)
-            const {user,token} = this.props.store.getState().user
+            let {user,token} = this.props.store.getState().user
+
+            if(isLocalhost){
+                user = 'user'
+                token = '1234567890'
+            }
+
             if(user && token){
                 this.props.store.dispatch(login(user, token))
             }

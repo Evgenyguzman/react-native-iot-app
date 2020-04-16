@@ -1,12 +1,6 @@
 import React from 'react';
 
-// import DeviceScreen from "../screens/DeviceScreen";
-// import DevicesScreen from "../screens/DevicesScreen";
-// import LoginScreen from "../screens/LoginScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
-import {
-  Button
-} from 'react-native';
 
 import { createSwitchNavigator, createAppContainer } from 'react-navigation';
 import { DevicesScreenContainer, LoginScreenContainer, DeviceScreenContainer } from '../containers/containers';
@@ -42,8 +36,8 @@ const SystemNavigator = createStackNavigator({
   }
 },{
   initialRouteName: 'Devices',
-  onTransitionStart: () => {
-    console.log('transition start')
+  onTransitionStart: (props) => {
+    console.log('transition start', props)
   },
   defaultNavigationOptions: {
     
